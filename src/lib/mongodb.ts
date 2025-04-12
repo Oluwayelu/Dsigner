@@ -1,30 +1,31 @@
-import mongoose, { ConnectOptions } from "mongoose";
+import mongoose from "mongoose";
+
+const cached: { conn?: typeof mongoose; promise?: Promise<typeof mongoose> } =
+	{};
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable.");
-}
+async function dbConnect() {
+	if (cached.conn) return cached.conn;
 
-let cached = global.mongoose as
-  | { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null }
-  | undefined;
+	if (!MONGODB_URI) {
+		throw new Error("Please define the MONGODB_URI environment variable.");
+	}
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+	if (!cached.promise) {
+		cached.promise = mongoose.connect(MONGODB_URI, {
+			bufferCommands: false,
+		});
+	}
 
-async function dbConnect(): Promise<typeof mongoose> {
-  if (cached.conn) return cached.conn;
+	try {
+		cached.conn = await cached.promise;
+	} catch (e) {
+		cached.promise = undefined;
+		throw e;
+	}
 
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    } as ConnectOptions);
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
+	return cached.conn;
 }
 
 export default dbConnect;
