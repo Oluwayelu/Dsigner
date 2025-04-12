@@ -19,8 +19,15 @@ import {
 } from "@/components/ui/sidebar";
 import { ITeam } from "@/models/Team";
 import { Skeleton } from "./ui/skeleton";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
-export function TeamSwitcher({ teams }: { teams: ITeam[] }) {
+export function TeamSwitcher({
+	teams,
+	setOpen,
+}: {
+	teams: ITeam[];
+	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
 	const { isMobile } = useSidebar();
 	const [activeTeam, setActiveTeam] = React.useState<ITeam | null>(null);
 
@@ -98,7 +105,10 @@ export function TeamSwitcher({ teams }: { teams: ITeam[] }) {
 							</DropdownMenuItem>
 						)}
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className="gap-2 p-2 focus:bg-primary-green/50 focus:text-black">
+						<DropdownMenuItem
+							onClick={() => setOpen((prev) => !prev)}
+							className="gap-2 p-2 focus:bg-primary-green/50 focus:text-black"
+						>
 							<div className="flex size-6 items-center justify-center rounded-md border border-black">
 								<Plus className="size-4" />
 							</div>
@@ -106,6 +116,20 @@ export function TeamSwitcher({ teams }: { teams: ITeam[] }) {
 								Create new team
 							</div>
 						</DropdownMenuItem>
+						{/* <Dialog>
+							<DialogTrigger asChild>
+							
+							</DialogTrigger>
+
+							<DialogContent>
+								<DialogHeader>
+									<DialogTitle>Create a new team</DialogTitle>
+									<DialogDescription>create a new team</DialogDescription>
+								</DialogHeader>
+
+								<div></div>
+							</DialogContent>
+						</Dialog> */}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</SidebarMenuItem>

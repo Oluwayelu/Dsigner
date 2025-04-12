@@ -11,11 +11,17 @@ import CursorChat from "./cursor/CursorChat";
 import ReactionSelector from "./reaction/ReactionButton";
 import useInterval from "@/hooks/useInterval";
 import FlyingReaction from "./reaction/FlyingReaction";
+import { toast } from "sonner";
+import { captureCanvasPreview } from "@/lib/canvas";
+import { useParams } from "next/navigation";
+import { useReactMutation } from "@/hooks/useReactQueryFn";
 
 type Props = {
 	canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
 };
 const Live = ({ canvasRef }: Props) => {
+	const { id } = useParams<{ id: string }>();
+	const { mutate } = useReactMutation(`/design/${id}/save-preview`, "post");
 	const others = useOthers();
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const [{ cursor }, updateMyPresence] = useMyPresence() as any;
@@ -190,6 +196,67 @@ const Live = ({ canvasRef }: Props) => {
 		);
 	}, [cursorState.mode, setCursorState]);
 
+	const saveCanvas = useCallback(async () => {
+		if (!canvasRef.current) return;
+
+		console.log("Hit saving file");
+
+		try {
+			const preview = await captureCanvasPreview(canvasRef.current);
+			if (!preview) return;
+
+			const blob = await fetch(preview).then((res) => res.blob());
+			const formData = new FormData();
+			formData.append("preview", blob);
+			formData.append("designId", id); // Add your design ID here
+
+			mutate(formData, {
+				onSuccess: (data) => {
+					console.log(data);
+
+					toast.success("Design saved successfully");
+				},
+				onError: (error) => {
+					console.error("Save error:", error);
+					toast.error("Failed to save design");
+				},
+			});
+
+			// const response = await fetch("/api/design/save-preview", {
+			// 	method: "POST",
+			// 	body: formData,
+			// });
+
+			// if (!response.ok) throw new Error("Failed to save");
+
+			// toast.success("Design saved successfully");
+		} catch (error) {
+			toast.error("Failed to save design");
+			console.error("Save error:", error);
+		}
+	}, [canvasRef]);
+
+	// Auto-save every 5 minutes
+	useEffect(() => {
+		const autoSaveInterval = setInterval(saveCanvas, 5 * 60 * 1000);
+
+		return () => clearInterval(autoSaveInterval);
+	}, [saveCanvas]);
+
+	// Ctrl+S shortcut handler
+	useEffect(() => {
+		const handleKeyDown = async (e: KeyboardEvent) => {
+			if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+				e.preventDefault();
+				console.log("Hit ctrl S");
+				await saveCanvas();
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [saveCanvas]);
+
 	return (
 		<div
 			id="canvas"
@@ -197,7 +264,7 @@ const Live = ({ canvasRef }: Props) => {
 			onPointerMove={handlePointerMove}
 			onPointerDown={handlePointerDown}
 			onPointerLeave={handlePointerLeave}
-			className="w-full h-dvh border-2 border-green-500"
+			className="w-full min-h-[90dvh] border-2 border-green-500 relative"
 		>
 			<canvas ref={canvasRef} />
 
@@ -232,6 +299,10 @@ const Live = ({ canvasRef }: Props) => {
 			)}
 
 			<LiveCursors others={others} />
+
+			<div className="absolute top-4 right-4 flex items-center gap-2">
+				<span className="text-xs text-gray-500">Auto-save enabled</span>
+			</div>
 		</div>
 	);
 };

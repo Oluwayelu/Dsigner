@@ -14,7 +14,7 @@ import {
 	SquareTerminal,
 } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main";
+// import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
@@ -28,8 +28,15 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "@/components/ui/sidebar";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	// DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "./ui/input";
 import { useReactQuery } from "@/hooks/useReactQueryFn";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 // This is sample data.
 const data = {
@@ -115,17 +122,21 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { isLoading, data: queryData } = useReactQuery(
-		"profile",
-		"/user/profile"
-	);
+	const [open, setOpen] = React.useState(false);
+	const { data: queryData } = useReactQuery("profile", "/user/profile");
 
-	console.log(isLoading, !isLoading && queryData?.data.data);
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
-				<TeamSwitcher teams={queryData?.data.data.teams} />
+				<TeamSwitcher setOpen={setOpen} teams={queryData?.data.data.teams} />
 			</SidebarHeader>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Create team</DialogTitle>
+					</DialogHeader>
+				</DialogContent>
+			</Dialog>
 
 			<SidebarContent>
 				<SidebarGroup>
@@ -137,7 +148,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarGroup>
 
 				<NavProjects projects={data.projects} />
-				<NavMain items={data.navMain} />
+				{/* <NavMain items={data.navMain} /> */}
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser user={queryData?.data.data} />

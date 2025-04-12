@@ -27,8 +27,12 @@ import { defaultNavElement } from "@/constants";
 import { handleDelete, handleKeyDown } from "@/lib/key-events";
 import { useMutation, useRedo, useStorage, useUndo } from "@liveblocks/react";
 import { LiveMap } from "@liveblocks/client";
+import { useParams } from "next/navigation";
+import { useReactQuery } from "@/hooks/useReactQueryFn";
+import Loader from "@/components/Loader";
 
 export default function Page() {
+	const { id } = useParams<{ id: string }>();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const fabricRef = useRef<fabric.Canvas | null>(null);
 	const isDrawing = useRef(false);
@@ -63,6 +67,11 @@ export default function Page() {
 	 */
 	const undo = useUndo();
 	const redo = useRedo();
+
+	const { data, isLoading, refetch, error, isError } = useReactQuery(
+		"design",
+		`/design/${id}`
+	);
 
 	const canvasObjects = useStorage(
 		(root: { canvasObjects?: LiveMap<string, any> }) =>
@@ -318,6 +327,19 @@ export default function Page() {
 		});
 	}, [canvasObjects]);
 
+	if (isLoading) {
+		return <Loader />;
+	}
+
+	if (isError && error) {
+		return (
+			<div className="">
+				<h1>An Error occured</h1>
+			</div>
+		);
+	}
+
+	console.log("design data: ", data, isLoading);
 	return (
 		<main className="w-full h-screen overflow-hidden">
 			<Navbar
@@ -338,7 +360,11 @@ export default function Page() {
 			/>
 
 			<div className="flex h-full flex-row bg-secondary-gray">
-				<LeftSidebar allShapes={Array.from(canvasObjects || [])} />
+				<LeftSidebar
+					refetch={refetch}
+					design={data?.data.data}
+					allShapes={Array.from(canvasObjects || [])}
+				/>
 				<Live canvasRef={canvasRef} />
 				<RightSidebar
 					elementAttributes={elementAttributes}

@@ -429,3 +429,74 @@ export const handleCanvasZoom = ({
 	options.e.preventDefault();
 	options.e.stopPropagation();
 };
+
+export const generatePreview = (canvas: HTMLCanvasElement): Promise<string> => {
+	return new Promise((resolve, reject) => {
+		try {
+			// Set max dimensions for the preview
+			const MAX_WIDTH = 800;
+			const MAX_HEIGHT = 600;
+
+			// Calculate aspect ratio
+			const aspectRatio = canvas.width / canvas.height;
+			let width = canvas.width;
+			let height = canvas.height;
+
+			// Resize while maintaining aspect ratio
+			if (width > MAX_WIDTH) {
+				width = MAX_WIDTH;
+				height = width / aspectRatio;
+			}
+			if (height > MAX_HEIGHT) {
+				height = MAX_HEIGHT;
+				width = height * aspectRatio;
+			}
+
+			// Create temporary canvas for the preview
+			const tempCanvas = document.createElement("canvas");
+			tempCanvas.width = width;
+			tempCanvas.height = height;
+			const ctx = tempCanvas.getContext("2d");
+
+			if (!ctx) {
+				throw new Error("Failed to get canvas context");
+			}
+
+			// Draw the original canvas onto the temp canvas
+			ctx.fillStyle = "#ffffff"; // Set background color
+			ctx.fillRect(0, 0, width, height);
+			ctx.drawImage(canvas, 0, 0, width, height);
+
+			// Convert to base64 image
+			const preview = tempCanvas.toDataURL("image/jpeg", 0.7);
+			resolve(preview);
+		} catch (error) {
+			reject(error);
+		}
+	});
+};
+
+export const captureCanvasPreview = async (
+	canvas: HTMLCanvasElement
+): Promise<string | null> => {
+	try {
+		const tempCanvas = document.createElement("canvas");
+		tempCanvas.width = canvas.width;
+		tempCanvas.height = canvas.height;
+
+		const ctx = tempCanvas.getContext("2d");
+		if (!ctx) return null;
+
+		// Set white background
+		ctx.fillStyle = "#ffffff";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		// Draw the canvas content
+		ctx.drawImage(canvas, 0, 0);
+
+		return tempCanvas.toDataURL("image/jpeg", 0.8);
+	} catch (error) {
+		console.error("Error capturing canvas:", error);
+		return null;
+	}
+};

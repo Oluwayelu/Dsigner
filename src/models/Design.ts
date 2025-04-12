@@ -8,6 +8,7 @@ export interface IDesign extends Document {
 	acceptedUsers: mongoose.Types.ObjectId[];
 	seenBy?: mongoose.Types.ObjectId[];
 	privacy: "private" | "public";
+	isDraft: boolean;
 	description?: string;
 	lastEdited: Date;
 	createdAt: Date;
@@ -34,6 +35,7 @@ const DesignSchema: Schema<IDesign> = new mongoose.Schema(
 		seenBy: [
 			{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
 		],
+		isDraft: { type: Boolean, default: true },
 		privacy: { type: String, enum: ["private", "public"], default: "private" },
 		description: { type: String },
 		lastEdited: { type: Date, default: new Date() },

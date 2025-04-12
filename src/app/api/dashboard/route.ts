@@ -31,8 +31,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 			],
 		}).populate("team");
 
+		// const draftDesign = await Design.find({ isDraft: true, creator: user._id });
+
 		const designs = [...personalDesigns, ...teamDesigns];
-		console.log("Unsorted: ", designs);
+
+		console.log("Designs: ", designs);
 		designs.sort((a, b) =>
 			new Date(a.lastEdited).getTime() - new Date(b.lastEdited).getTime() < 0
 				? 1
@@ -42,7 +45,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 		return NextResponse.json(
 			{
 				message: "Dashbaord fetched successfully",
-				data: { user, designs, teams },
+				data: {
+					user,
+					designs,
+					teams,
+					teamDesigns: teamDesigns.length,
+					personalDesigns: personalDesigns.length,
+				},
 			},
 			{ status: 200 }
 		);

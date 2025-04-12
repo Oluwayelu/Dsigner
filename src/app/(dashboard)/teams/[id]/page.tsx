@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import moment from "moment";
-import { User, Users2Icon } from "lucide-react";
+import Link from "next/link";
+import { User, Users2Icon, FilePlus2 } from "lucide-react";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -10,22 +11,22 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogDescription,
-//   DialogTrigger,
-// } from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogDescription,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { useReactMutation, useReactQuery } from "@/hooks/useReactQueryFn";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
-// import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IDesign } from "@/models/Design";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { Loading } from "@/components/ui/loading";
+import Image from "next/image";
 
 export default function DashboardPage() {
 	const router = useRouter();
@@ -54,6 +55,7 @@ export default function DashboardPage() {
 		);
 	}
 
+	console.log("dashbdata: ", data);
 	return (
 		<SidebarInset>
 			<header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -81,18 +83,12 @@ export default function DashboardPage() {
 					<div className="grid auto-rows-min gap-4 md:grid-cols-3">
 						<Skeleton className="w-full h-40 rounded-xl bg-gradient-to-br from-primary-green/10 to-primary-violet/10" />
 						<Skeleton className="w-full h-40 rounded-xl bg-gradient-to-br from-primary-green/10 to-primary-violet/10" />
+						<Skeleton className="w-3/4 h-20 rounded-xl bg-gradient-to-br from-primary-green/10 to-primary-violet/10" />
 					</div>
 
-					<div className="p-5 bg-slate-100/30 flex-1 rounded-xl md:min-h-min space-y-5 overflow-hidden">
+					<div className="sticky top-0 inset-x-0 flex-1 md:min-h-min space-y-3 overflow-hidden">
 						<div className="w-full flex items-center justify-between">
-							<h1 className="text-xl font-semibold">Recent Designs</h1>
-
-							<Button
-								onClick={createDesign}
-								className="bg-gradient-to-tr from-primary-green to-primary-violet hover:opacity-90 hover:scale-95 hover:transition-all hover:duration-500 hover:ease-in-out "
-							>
-								Create Design
-							</Button>
+							<Skeleton className="w-40 h-3" />
 						</div>
 						<div className="grid auto-rows-min gap-4 md:grid-cols-3 ">
 							{[1, 2, 3].map((_, key) => (
@@ -102,7 +98,7 @@ export default function DashboardPage() {
 					</div>
 				</div>
 			) : (
-				<div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+				<div className="relative flex flex-1 flex-col gap-4 p-4 pt-0">
 					<div className="grid auto-rows-min gap-4 md:grid-cols-3">
 						<div className="w-full h-40 flex flex-col p-3 rounded-xl bg-gradient-to-br from-primary-green/10 to-primary-violet/10 gap-2">
 							<div className="h-12 w-12 flex justify-center items-center bg-primary-violet rounded-xl">
@@ -112,7 +108,9 @@ export default function DashboardPage() {
 							<p className="text-lg font-normal">Personal designs</p>
 
 							<div className="w-full flex justify-end">
-								<h1 className="text-4xl font-semibold">10</h1>
+								<h1 className="text-4xl font-semibold">
+									{data?.data.data.personalDesigns || 0}
+								</h1>
 							</div>
 						</div>
 						<div className="w-full h-40 flex flex-col p-3 rounded-xl bg-gradient-to-br from-primary-green/10 to-primary-violet/10 gap-2">
@@ -123,44 +121,81 @@ export default function DashboardPage() {
 							<p className="text-lg font-normal">Team designs</p>
 
 							<div className="w-full flex justify-end">
-								<h1 className="text-4xl font-semibold">27</h1>
+								<h1 className="text-4xl font-semibold">
+									{data?.data.data.teamDesigns || 0}
+								</h1>
 							</div>
 						</div>
+						<div
+							onClick={createDesign}
+							className="w-3/4 h-fit flex flex-col p-3 rounded-xl bg-gradient-to-br from-primary-green/10 to-primary-violet/10 gap-2 cursor-pointer"
+						>
+							<div className="h-12 w-12 flex justify-center items-center bg-gradient-to-br from-primary-green to-primary-violet rounded-xl">
+								<FilePlus2 className="w-6 h-6" />
+							</div>
+
+							<p className="text-lg font-normal">
+								{isPending ? "Creating..." : "Create Design"}
+							</p>
+						</div>
+						<Dialog open={isPending}>
+							<DialogContent className="w-4/5 md:w-1/2 xl:w-1/3 bg-gradient-to-br from-primary-green/10 to-primary-violet/10">
+								<DialogHeader>
+									<DialogTitle>Creating design...</DialogTitle>
+									<DialogDescription>
+										Please wait a little bit while we create your design
+										interface
+									</DialogDescription>
+								</DialogHeader>
+								<div className="w-full hit">
+									<Loading size="lg" />
+								</div>
+							</DialogContent>
+						</Dialog>
 						{/* <div className="aspect-video rounded-xl bg-muted/50" /> */}
 					</div>
-					<div className="p-5 h-[300vh] bg-slate-100/50 flex-1 rounded-xl md:min-h-min space-y-5 overflow-hidden">
-						<div className="w-full flex items-center justify-between">
-							<h1 className="text-xl font-semibold">Recent Designs</h1>
 
-							<Button
-								onClick={createDesign}
-								className="bg-gradient-to-tr from-primary-green to-primary-violet hover:opacity-90 hover:scale-95 hover:transition-all hover:duration-500 hover:ease-in-out "
-							>
-								{isPending ? "Creating..." : "Create Design"}
-							</Button>
-							{/* <Dialog>
-              <DialogContent></DialogContent>
-            </Dialog> */}
+					<div className="sticky top-0 inset-x-0 flex-1 md:min-h-min space-y-3 overflow-hidden">
+						<div className="w-full flex items-center justify-between">
+							<h1 className="text-sm font-medium">Recent Designs</h1>
 						</div>
-						<div className="grid auto-rows-min gap-4 md:grid-cols-3 ">
+						<div className="grid auto-rows-min gap-6 md:grid-cols-2 xl:grid-cols-3 ">
 							{data?.data &&
 								data.data.data.designs.map((design: IDesign) => (
-									<div
+									<Link
 										key={design._id as string}
-										className="w-full bg-white rounded-xl overflow-hidden"
+										href={`/design/${design._id}`}
 									>
-										<div className="w-full h-40 bg-gray-400"></div>
-										<div className="p-2">
-											<p className="text-sm text-gray-400">{design.title}</p>
-
-											<div className="w-full flex justify-end text-gray-500">
-												<p className="text-xs">
-													last edited:{" "}
-													{moment(new Date(design.lastEdited)).fromNow()}
+										<div className="w-full border border-primary-violet bg-gradient-to-br from-primary-green/10 to-primary-violet/10 rounded-xl overflow-hidden">
+											<div className="w-full h-40 bg-slate-400 relative">
+												<Image
+													src={`/previews/${design._id}.jpg`}
+													alt={design.title}
+													fill
+													className="object-cover object-center"
+													sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+													onError={(e) => {
+														// Hide the image on error
+														const target = e.target as HTMLImageElement;
+														target.style.display = "none";
+													}}
+												/>
+											</div>
+											<div className="p-2">
+												<p className="text-sm text-gray-400">
+													{design.title}
+													{design.isDraft ? " (draft)" : ""}
 												</p>
+
+												<div className="w-full flex justify-end text-gray-500">
+													<p className="text-xs">
+														last edited:{" "}
+														{moment(new Date(design.lastEdited)).fromNow()}
+													</p>
+												</div>
 											</div>
 										</div>
-									</div>
+									</Link>
 								))}
 						</div>
 					</div>
