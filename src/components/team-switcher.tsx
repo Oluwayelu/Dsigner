@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/sidebar";
 import { ITeam } from "@/models/Team";
 import { Skeleton } from "./ui/skeleton";
-import { DialogTitle } from "@radix-ui/react-dialog";
 
 export function TeamSwitcher({
 	teams,
