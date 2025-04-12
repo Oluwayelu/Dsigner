@@ -69,9 +69,9 @@ const RegisterPage = () => {
 
 	return (
 		<div className="w-full h-full flex items-center">
-			<div className="w-2/3 h-full bg-primary-violet"></div>
+			<div className="hidden md:block w-2/3 h-full bg-primary-violet"></div>
 
-			<div className="w-1/3 p-5 md:p-10 flex flex-col space-y-5">
+			<div className="w-full md:w-1/3 p-5 md:p-10 flex flex-col space-y-5">
 				<h1 className="text-3xl font-mono font-semibold">Register</h1>
 
 				<Form {...form}>
